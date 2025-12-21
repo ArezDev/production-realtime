@@ -6,19 +6,31 @@ services:
     restart: always
     env_file:
       - .env
-    # Kita tidak butuh 'depends_on' karena DB-nya di luar Docker
     networks:
       - app-network
 
-  # 2. Web Server Nginx (Sebagai Pintu Masuk)
+  # 2. Web Server Nginx
   nginx:
     build: ./nginx
     container_name: nginx-proxy
     restart: always
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/certs:/etc/nginx/certs
     depends_on:
       - nextjs-app
+    networks:
+      - app-network
+
+  # 3. Tunnel cloudflared
+  tunnel:
+    image: cloudflare/cloudflared
+    container_name: cloudflared-tunnel
+    restart: always
+    command: tunnel run --token eyJhIjoiZjQ5ZTA2OTEwNmFkNzY2M2QwMTQyMjBlOGQ1ZWE2MDciLCJ0IjoiNzViYjczYjItNTIzMC00ZjJiLTk0YTgtZmFlZDM1NzUwNDk4IiwicyI6IkIzem5SekpGRmN2d0kzeGxmaXpWV0ZSNHNtalRhQ3NqenE2L1JXRTE1NU09In0=
     networks:
       - app-network
 
